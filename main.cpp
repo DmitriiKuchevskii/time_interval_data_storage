@@ -26,18 +26,20 @@ protected:
 
     void onReceived(const void* buffer, size_t size) override
     {
-        if (size < 3)
+        size_t secondsSinceStart = duration_cast<seconds>(steady_clock::now().time_since_epoch()).count() - kServerStartTime;
+        if (size < 3) {
             return;
+        }
 
         auto strValue = std::string((const char*)buffer, size - 2);
         size_t value = std::stoll(strValue);
         m_storage.put(value);
         std::string res = std::to_string(m_storage.get()) + "\n";
 
-        if (!SendAsync(res.c_str(), res.size()))
+        if (!SendAsync(res.c_str(), res.size())) {
             throw std::runtime_error("Can not send data. Unknown reason. Terminate server.");
+        }
 
-        size_t secondsSinceStart = duration_cast<seconds>(steady_clock::now().time_since_epoch()).count() - kServerStartTime;
         auto msg = std::to_string(secondsSinceStart) + ". Got " + strValue + " from " +
                    m_remoteAddress + ":" + m_remoteAddressPort + "(session ID: " + kSessionId + "). "
                    + "The current sum is " + res;
@@ -46,7 +48,7 @@ protected:
 
 private:
     static std::atomic<size_t> m_sessions;
-    TimeIntervalDataStorage m_storage{60 * 1000};
+    TimeIntervalDataStorage m_storage{5 * 1000, 20};
     const size_t kServerStartTime;
     std::string m_remoteAddress;
     std::string m_remoteAddressPort;

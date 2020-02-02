@@ -31,7 +31,7 @@ public:
         if (it == m_data.end())
         {
             m_curSubstruct = 0;
-            m_data = {{timeNow, number}};
+            m_data = { { timeNow, number } };
             return;
         }
         else if (it != m_data.begin())
@@ -39,7 +39,10 @@ public:
             m_curSubstruct = (it - 1)->second;
             if (std::distance(m_data.begin(), it) > kMaxUnusedSize)
             {
-                m_data = {it, m_data.end()};
+                m_data = { it, m_data.end() };
+                for (auto& val : m_data)
+                    val.second -= m_curSubstruct;
+                m_curSubstruct = 0;
             }
         }
 
