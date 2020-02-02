@@ -1,0 +1,13 @@
+# Ignore everything
+*
+
+# But not these files...
+!.gitignore
+!CMakeLists.txt
+!*.cpp
+!*.cc
+!*.h
+!*.hpp
+!*.cxx
+!README.txt
+!setup.sh
