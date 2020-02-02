@@ -48,7 +48,7 @@ protected:
 
 private:
     static std::atomic<size_t> m_sessions;
-    TimeIntervalDataStorage m_storage{5 * 1000, 20};
+    TimeIntervalDataStorage m_storage;
     const size_t kServerStartTime;
     std::string m_remoteAddress;
     std::string m_remoteAddressPort;
