@@ -16,7 +16,7 @@ using namespace std::chrono;
 class TimeIntervalDataStorage
 {
 public:
-    explicit TimeIntervalDataStorage(size_t intervalInMilliseconds = 60  * 1000, size_t maxUnusedSize = 10 * 1024) :
+    explicit TimeIntervalDataStorage(size_t intervalInMilliseconds = 60  * 1000, size_t maxUnusedSize = 1024) :
         kDataTimeIntervalInMilliseconds(intervalInMilliseconds)
       , kMaxUnusedSize(maxUnusedSize)
     {}
@@ -36,11 +36,11 @@ public:
         }
         else if (it != m_data.begin())
         {
+            m_curSubstruct = (it - 1)->second;
             if (std::distance(m_data.begin(), it) > kMaxUnusedSize)
             {
                 m_data = {it, m_data.end()};
             }
-            m_curSubstruct = (--it)->second;
         }
 
         m_data.emplace_back(timeNow, m_data.back().second + number);
