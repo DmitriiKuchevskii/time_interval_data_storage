@@ -55,7 +55,7 @@ private:
     std::vector<std::pair<size_t, size_t>> m_data;
     const size_t kDataTimeIntervalInMilliseconds = 60 * 1000; // 1 min
     size_t m_curSubstruct =  0;
-    const size_t kMaxUnusedSize = 1024; // ~20Kb (SIZE == 10 * 1024 * sizeof(std::pair<size_t, size_t>))
+    const size_t kMaxUnusedSize = 1024; // ~20Kb (SIZE == 1024 * sizeof(std::pair<size_t, size_t>))
 };
 
 
