@@ -1,4 +1,7 @@
 To build:
+0. Install gil:
+    pip3 install gil
+
 1. Download CppServer library by executing:
     sh setup.sh
 
