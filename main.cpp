@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 
 #include "server/asio/service.h"
 #include "server/asio/tcp_server.h"
@@ -8,6 +9,33 @@
 
 using namespace CppCommon;
 using namespace CppServer::Asio;
+
+// It is not really fast, but com'n it's MUCH faster then std::to_string
+std::string fast_to_string(int64_t val)
+{
+    constexpr size_t kMaxNumberSize = 35;
+    char result[kMaxNumberSize];
+
+    size_t index = 0;
+    bool neg = false;
+    if (val < 0)
+    {
+        neg = true;
+        val = -val;
+    }
+
+    do
+    {
+        result[kMaxNumberSize - 1 - index++] = (val % 10) + 48;
+        val /= 10;
+    }
+    while(val);
+
+    if (neg)
+        result[kMaxNumberSize - 1 - index] = '-';
+
+    return {result + kMaxNumberSize - neg - index, index + neg };
+}
 
 class Session : public TCPSession
 {
@@ -27,28 +55,41 @@ protected:
     void onReceived(const void* buffer, size_t size) override
     {
         size_t secondsSinceStart = duration_cast<seconds>(steady_clock::now().time_since_epoch()).count() - kServerStartTime;
-        if (size < 3) {
-            return;
+        auto secondsSinceStartStr = fast_to_string(secondsSinceStart);
+
+        auto strValues = (const char*)buffer;
+        char *end;
+        for (auto curValue = std::strtol(strValues, &end, 10);
+             strValues != end;
+             curValue = std::strtol(strValues, &end, 10))
+        {
+            if (std::distance((const char*)buffer, (const char*)end) >= size)
+                return;
+            strValues = end;
+            handle(curValue, secondsSinceStartStr);
         }
-
-        auto strValue = std::string((const char*)buffer, size - 2);
-        size_t value = std::stoll(strValue);
-        m_storage.put(value);
-        std::string res = std::to_string(m_storage.get()) + "\n";
-
-        if (!SendAsync(res.c_str(), res.size())) {
-            throw std::runtime_error("Can not send data. Unknown reason. Terminate server.");
-        }
-
-        auto msg = std::to_string(secondsSinceStart) + ". Got " + strValue + " from " +
-                   m_remoteAddress + ":" + m_remoteAddressPort + "(session ID: " + kSessionId + "). "
-                   + "The current sum is " + res;
-        std::cout << msg;
     }
 
 private:
+    void handle(int64_t value, const std::string& secondsSinceStart)
+    {
+        m_storage.put(value);
+        auto curSumStr = fast_to_string(m_storage.get()) + "\n";
+
+        if (!SendAsync(curSumStr.data(), curSumStr.size()))
+        {
+            throw std::runtime_error("Can not send data. Unknown reason. Terminate server.");
+        }
+
+        auto msg = secondsSinceStart + ". Got " + fast_to_string(value) + " from " +
+                   m_remoteAddress + ":" + m_remoteAddressPort + "(session ID: " + kSessionId + "). "
+                   + "The current sum is " + curSumStr;
+        std::cout << msg;
+    }
+
+protected:
     static std::atomic<size_t> m_sessions;
-    TimeIntervalDataStorage m_storage;
+    TimeIntervalDataStorage<int64_t> m_storage;
     const size_t kServerStartTime;
     std::string m_remoteAddress;
     std::string m_remoteAddressPort;
@@ -72,8 +113,53 @@ private:
     const size_t StartTime = duration_cast<seconds>(steady_clock::now().time_since_epoch()).count();
 };
 
+
+
+
+
+
+class MockSession : public  Session
+{
+public:
+    MockSession(const std::shared_ptr<TCPServer> &server, size_t startTime) : Session(server, startTime) {};
+
+    void sendTestMessage(const std::string& msg)
+    {
+        onReceived(msg.data(), msg.size());
+    }
+
+    size_t getCurSum() const
+    {
+        return m_storage.get();
+    }
+
+    bool SendAsync(const void* buff, size_t size) override
+    {
+        return true;
+    }
+};
+
+void test_multi_packets()
+{
+    auto service = std::make_shared<Service>(0);
+    auto server = std::make_shared<Server>(service, 0000);
+    MockSession mockSession(server, 0);
+    mockSession.sendTestMessage("1\n\r2\n\r3\n\r");
+    if (mockSession.getCurSum() != 1 + 2 + 3)
+        throw std::runtime_error("Multi requests do not work!. FIX ME FIRST!!!!");
+}
+
+
+
+
+
+
+
+
 int main(int argc, char** argv)
 {
+    test_multi_packets();
+
     auto service = std::make_shared<Service>(std::thread::hardware_concurrency());
     service->Start();
 
