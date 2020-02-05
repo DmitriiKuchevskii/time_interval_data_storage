@@ -147,6 +147,9 @@ void test_multi_packets()
     mockSession.sendTestMessage("1\n\r2\n\r3\n\r");
     if (mockSession.getCurSum() != 1 + 2 + 3)
         throw std::runtime_error("Multi requests do not work!. FIX ME FIRST!!!!");
+    mockSession.sendTestMessage("-6\n\r0\n\r0\n\r");
+    if (mockSession.getCurSum() != 0)
+        throw std::runtime_error("Multi requests do not work!. FIX ME FIRST!!!!");
 }
 
 
