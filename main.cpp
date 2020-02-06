@@ -150,18 +150,62 @@ void test_multi_packets()
     mockSession.sendTestMessage("-6\n\r0\n\r0\n\r");
     if (mockSession.getCurSum() != 0)
         throw std::runtime_error("Multi requests do not work!. FIX ME FIRST!!!!");
+    mockSession.sendTestMessage("-");
+    mockSession.sendTestMessage("12");
+    mockSession.sendTestMessage("3");
+    mockSession.sendTestMessage("\n");
+    if (mockSession.getCurSum() != 0)
+        throw std::runtime_error("Multi requests do not work!. FIX ME FIRST!!!!");
+    mockSession.sendTestMessage("\r");
+    if (mockSession.getCurSum() != -123)
+        throw std::runtime_error("Multi requests with separated messages do not work!. FIX ME FIRST!!!!");
 }
 
+volatile size_t approx_number_of_iterations_for_1microsec_wait()
+{
+    constexpr size_t iters = 1000000000;
+    volatile size_t test = iters;
+    auto t1 = std::chrono::high_resolution_clock::now();
+    while(test--) {}
+    auto t2 = std::chrono::high_resolution_clock::now();
+    size_t elapsedTime = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    return (iters * 1.05) / elapsedTime; // It is not accurate, of course, but in fact we can't guarantee anything anyway.
+}
+volatile size_t kMicrosecondWaitIterations = approx_number_of_iterations_for_1microsec_wait();
 
+volatile void busy_wait(size_t microSec)
+{
+    volatile size_t non_optimize = microSec * kMicrosecondWaitIterations;
+    while(non_optimize--) {}
+}
 
-
-
-
-
+void test_storage_perfomance(size_t storageInterval = 60 * 1000, size_t testTimeInSeconds = 180)
+{
+    TimeIntervalDataStorage<int64_t> dataStorage { storageInterval, 1024 * 1024 * 10 };
+    auto t1 = std::chrono::high_resolution_clock::now();
+    for (size_t i = 0; i < 10000 * testTimeInSeconds; ++i)
+    {
+        dataStorage.put(i);
+        busy_wait(100);
+    }
+    auto t2 = std::chrono::high_resolution_clock::now();
+    size_t perfectTime = testTimeInSeconds * 1000;
+    std::cout << "Perfect time: " <<  perfectTime << " milliseconds\n";
+    size_t elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+    if (perfectTime > elapsedTime)
+        elapsedTime = perfectTime; // So, yeah.... silly but... you know... what else can we do here ???
+    std::cout << "Elapsed time: " << elapsedTime << " milliseconds\n";
+    std::cout << "Error " << elapsedTime - perfectTime << " milliseconds (" << ((100.0 * (elapsedTime - perfectTime)) / elapsedTime) << "%)\n";
+}
 
 int main(int argc, char** argv)
 {
-    test_multi_packets();
+    if (argc > 1 && std::string(argv[1]) == "test")
+    {
+        test_storage_perfomance();
+        test_multi_packets();
+        std::cout << "ALL TESTS PASSED\n";
+    }
 
     auto service = std::make_shared<Service>(std::thread::hardware_concurrency(), true);
     service->Start();
