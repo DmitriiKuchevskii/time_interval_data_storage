@@ -179,14 +179,14 @@ volatile void busy_wait(size_t microSec)
     while(non_optimize--) {}
 }
 
-void test_storage_perfomance(size_t storageInterval = 60 * 1000, size_t testTimeInSeconds = 180)
+void test_storage_perfomance(size_t testTimeInSeconds, size_t messagesPerSec)
 {
-    TimeIntervalDataStorage<int64_t> dataStorage { storageInterval, 1024 * 1024 * 10 };
+    TimeIntervalDataStorage<int64_t> dataStorage;
     auto t1 = std::chrono::high_resolution_clock::now();
-    for (size_t i = 0; i < 10000 * testTimeInSeconds; ++i)
+    for (size_t i = 0; i < messagesPerSec * testTimeInSeconds; ++i)
     {
-        dataStorage.put(i);
-        busy_wait(100);
+        dataStorage.put(1);
+        busy_wait(1000000 / messagesPerSec);
     }
     auto t2 = std::chrono::high_resolution_clock::now();
     size_t perfectTime = testTimeInSeconds * 1000;
@@ -196,6 +196,7 @@ void test_storage_perfomance(size_t storageInterval = 60 * 1000, size_t testTime
         elapsedTime = perfectTime; // So, yeah.... silly but... you know... what else can we do here ???
     std::cout << "Elapsed time: " << elapsedTime << " milliseconds\n";
     std::cout << "Error " << elapsedTime - perfectTime << " milliseconds (" << ((100.0 * (elapsedTime - perfectTime)) / elapsedTime) << "%)\n";
+    std::cout << "Current sum is: " << dataStorage.get() << "\n";
 }
 
 int main(int argc, char** argv)
@@ -203,9 +204,10 @@ int main(int argc, char** argv)
     if (argc > 1 && std::string(argv[1]) == "test")
     {
         MicrosecondWaitIterations = approx_number_of_iterations_for_1microsec_wait();
-        test_storage_perfomance();
-        test_multi_packets();
+        test_storage_perfomance(180, 10000000);
+       // test_multi_packets();
         std::cout << "ALL TESTS PASSED\n";
+        return 0;
     }
 
     auto service = std::make_shared<Service>(std::thread::hardware_concurrency(), true);
