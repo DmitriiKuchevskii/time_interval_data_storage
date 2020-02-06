@@ -171,11 +171,11 @@ volatile size_t approx_number_of_iterations_for_1microsec_wait()
     size_t elapsedTime = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
     return (iters * 1.05) / elapsedTime; // It is not accurate, of course, but in fact we can't guarantee anything anyway.
 }
-volatile size_t kMicrosecondWaitIterations = approx_number_of_iterations_for_1microsec_wait();
+volatile size_t MicrosecondWaitIterations;
 
 volatile void busy_wait(size_t microSec)
 {
-    volatile size_t non_optimize = microSec * kMicrosecondWaitIterations;
+    volatile size_t non_optimize = microSec * MicrosecondWaitIterations;
     while(non_optimize--) {}
 }
 
@@ -202,6 +202,7 @@ int main(int argc, char** argv)
 {
     if (argc > 1 && std::string(argv[1]) == "test")
     {
+        MicrosecondWaitIterations = approx_number_of_iterations_for_1microsec_wait();
         test_storage_perfomance();
         test_multi_packets();
         std::cout << "ALL TESTS PASSED\n";
