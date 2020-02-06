@@ -163,7 +163,7 @@ int main(int argc, char** argv)
 {
     test_multi_packets();
 
-    auto service = std::make_shared<Service>(std::thread::hardware_concurrency());
+    auto service = std::make_shared<Service>(std::thread::hardware_concurrency(), true);
     service->Start();
 
     auto server = std::make_shared<Server>(service, 1111);
