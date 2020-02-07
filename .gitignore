@@ -5,6 +5,7 @@
 !.gitignore
 !CMakeLists.txt
 !*.cpp
+!test
 !*.cc
 !*.h
 !*.hpp

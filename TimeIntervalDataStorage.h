@@ -17,7 +17,7 @@ template <typename DataType>
 class TimeIntervalDataStorage
 {
 public:
-    explicit TimeIntervalDataStorage(size_t intervalInMilliseconds = 60  * 1000, size_t maxUnusedSize = 1024) :
+    explicit TimeIntervalDataStorage(size_t intervalInMilliseconds, size_t maxUnusedSize = 1024 * 1024 * 5) :
         kDataTimeIntervalInMilliseconds(intervalInMilliseconds)
       , kMaxUnusedSize(maxUnusedSize)
     {}
@@ -57,9 +57,9 @@ public:
 
 private:
     std::vector<std::pair<size_t, DataType>> m_data;
-    const size_t kDataTimeIntervalInMilliseconds = 60 * 1000; // 1 min
+    const size_t kDataTimeIntervalInMilliseconds;
     DataType m_curSubstruct =  0;
-    const size_t kMaxUnusedSize = 1024; // ~20Kb (SIZE == 1024 * sizeof(std::pair<size_t, size_t>))
+    const size_t kMaxUnusedSize;
 };
 
 

@@ -19,6 +19,11 @@ add_executable(time_interval_sum_server
  main.cpp
 )
 
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads REQUIRED)
+
+link_libraries(Threads::Threads)
 target_link_libraries(time_interval_sum_server
  cppserver
  cppcommon
@@ -29,6 +34,7 @@ target_link_libraries(time_interval_sum_server
  uuid
  ssl
  crypto
- pthread
+ Threads::Threads
 )
 
+add_subdirectory(test)
