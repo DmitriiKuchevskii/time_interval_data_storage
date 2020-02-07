@@ -4,8 +4,10 @@
 # But not these files...
 !.gitignore
 !CMakeLists.txt
-!*.cpp
 !test
+!include
+!src
+!*.cpp
 !*.cc
 !*.h
 !*.hpp

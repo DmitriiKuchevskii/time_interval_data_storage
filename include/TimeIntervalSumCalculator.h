@@ -3,8 +3,8 @@
 // Created by dmitrii on 1/31/20.
 //
 
-#ifndef TEST_TIMEINTERVALDATASTORAGE_H
-#define TEST_TIMEINTERVALDATASTORAGE_H
+#ifndef TIME_INTERVAL_SUM_CALCULATOR_H
+#define TIME_INTERVAL_SUM_CALCULATOR_H
 
 #include <vector>
 #include <chrono>
@@ -13,18 +13,29 @@
 
 using namespace std::chrono;
 
-template <typename DataType>
-class TimeIntervalDataStorage
+class StdTimeProvider
 {
 public:
-    explicit TimeIntervalDataStorage(size_t intervalInMilliseconds, size_t maxUnusedSize = 1024 * 1024 * 5) :
+    static size_t Now()
+    {
+        using std::chrono;
+        return duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count();
+    }
+};
+
+
+template <typename DataType, typename TimeProvider = StdTimeProvider>
+class TimeIntervalSumCalculator
+{
+public:
+    explicit TimeIntervalSumCalculator(size_t intervalInMilliseconds, size_t maxUnusedSize = 1024 * 1024 * 5) :
         kDataTimeIntervalInMilliseconds(intervalInMilliseconds)
       , kMaxUnusedSize(maxUnusedSize)
     {}
 
     void put(DataType number)
     {
-        size_t timeNow = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+        size_t timeNow = TimeProvider::Now();
         size_t boundTime = timeNow - kDataTimeIntervalInMilliseconds;
         auto it = std::upper_bound(m_data.begin(), m_data.end(), boundTime,
                                    [](const auto& p1, const auto& e2) { return p1 < e2.first; });
@@ -63,4 +74,4 @@ private:
 };
 
 
-#endif //TEST_TIMEINTERVALDATASTORAGE_H
+#endif //TIME_INTERVAL_SUM_CALCULATOR_H
