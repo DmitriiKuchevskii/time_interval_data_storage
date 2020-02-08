@@ -5,8 +5,8 @@
 !.gitignore
 !CMakeLists.txt
 !test
-!include
-!src
+!server
+!server/*
 !*.cpp
 !*.cc
 !*.h

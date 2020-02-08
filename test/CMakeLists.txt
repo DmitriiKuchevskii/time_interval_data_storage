@@ -1,5 +1,6 @@
 project(time_interval_sum_server_test)
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../server/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googletest/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googlemock/include)
 
