@@ -26,30 +26,32 @@ protected:
             }
         }
 
-
         return parsedValues;
     }
 
     void Reset()
     {
-        m_parser = std::make_unique<NumbersStreamParser<int64_t>>('\r', 32);
+        m_parser = std::make_unique<NumbersStreamParser<int64_t>>(kMsgDelimiter, kBacklogSize);
     }
 
 protected:
-    std::unique_ptr<NumbersStreamParser<int64_t>> m_parser = std::make_unique<NumbersStreamParser<int64_t>>('\r', 32);
+    static constexpr char kMsgDelimiter = '\r';
+    static constexpr size_t kBacklogSize = 32;
+    std::unique_ptr<NumbersStreamParser<int64_t>> m_parser =
+            std::make_unique<NumbersStreamParser<int64_t>>(kMsgDelimiter, kBacklogSize);
 };
 
-TEST_F(IntegerParserTest, TestEmptyMessage)
+TEST_F(IntegerParserTest, EmptyMessageTest)
 {
     ASSERT_THAT(ParseMsg(""), testing::ElementsAre());
 }
 
-TEST_F(IntegerParserTest, TestMessageWithSpacesOnly)
+TEST_F(IntegerParserTest, MessageWithSpacesOnlyTest)
 {
     ASSERT_THAT(ParseMsg("   \t\t    \t   \t\t"), testing::ElementsAre());
 }
 
-TEST_F(IntegerParserTest, TestFullMesageWithOneValueWithoutSpaces)
+TEST_F(IntegerParserTest, FullMesageWithOneValueWithoutSpacesTest)
 {
     ASSERT_THAT(ParseMsg("0\n\r"), testing::ElementsAre(0));
     ASSERT_THAT(ParseMsg("1\n\r"), testing::ElementsAre(1));
@@ -57,7 +59,7 @@ TEST_F(IntegerParserTest, TestFullMesageWithOneValueWithoutSpaces)
     ASSERT_THAT(ParseMsg("9999\n\r"), testing::ElementsAre(9999));
 }
 
-TEST_F(IntegerParserTest, TestFullMesageWithOneValueWithSpaces)
+TEST_F(IntegerParserTest, FullMesageWithOneValueWithSpacesTest)
 {
     ASSERT_THAT(ParseMsg("\t\t\t   0\t\t\n\r    "), testing::ElementsAre(0));
     ASSERT_THAT(ParseMsg("\t\t\t   1\t\t\n\r    "), testing::ElementsAre(1));
@@ -65,21 +67,21 @@ TEST_F(IntegerParserTest, TestFullMesageWithOneValueWithSpaces)
     ASSERT_THAT(ParseMsg("\t\t\t   9999\t\t\n\r    "), testing::ElementsAre(9999));
 }
 
-TEST_F(IntegerParserTest, TestFullMesageWithOneNegativeValueWithoutSpaces)
+TEST_F(IntegerParserTest, FullMesageWithOneNegativeValueWithoutSpacesTest)
 {
     ASSERT_THAT(ParseMsg("-1\n\r"), testing::ElementsAre(-1));
     ASSERT_THAT(ParseMsg("-100\n\r"), testing::ElementsAre(-100));
     ASSERT_THAT(ParseMsg("-9999\n\r"), testing::ElementsAre(-9999));
 }
 
-TEST_F(IntegerParserTest, TestFullMesageWithOneNegativeValueWithSpaces)
+TEST_F(IntegerParserTest, FullMesageWithOneNegativeValueWithSpacesTest)
 {
     ASSERT_THAT(ParseMsg("\t\t\t   -1\t\t\n\r    "), testing::ElementsAre(-1));
     ASSERT_THAT(ParseMsg("\t\t\t   -100\t\t\n\r    "), testing::ElementsAre(-100));
     ASSERT_THAT(ParseMsg("\t\t\t   -9999\t\t\n\r    "), testing::ElementsAre(-9999));
 }
 
-TEST_F(IntegerParserTest, TestFullMessageWithoutSpaces)
+TEST_F(IntegerParserTest, FullMessageWithoutSpacesTest)
 {
     ASSERT_THAT(
           ParseMsg("-1376\n\r-555\n\r-9\n\r0\n\r1\n\r10\n\r999\n\r1279\n\r120000001\n\r")
@@ -87,7 +89,7 @@ TEST_F(IntegerParserTest, TestFullMessageWithoutSpaces)
     );
 }
 
-TEST_F(IntegerParserTest, TestFullMessageWithSpaces)
+TEST_F(IntegerParserTest, FullMessageWithSpacesTest)
 {
     ASSERT_THAT(
            ParseMsg(" -1376\n\r-555\n\r  -9\n\r0\n\r    1\n\r10\n\r999\n\r   \t   1279\n\r120000001\n\r  ")
@@ -95,7 +97,7 @@ TEST_F(IntegerParserTest, TestFullMessageWithSpaces)
     );
 }
 
-TEST_F(IntegerParserTest, TestSeparatedMessageWithOneValueWithoutSpaces)
+TEST_F(IntegerParserTest, SeparatedMessageWithOneValueWithoutSpacesTest)
 {
     ASSERT_THAT(ParseMsg("5"), testing::ElementsAre());
     ASSERT_THAT(ParseMsg("\n"), testing::ElementsAre());
@@ -104,7 +106,7 @@ TEST_F(IntegerParserTest, TestSeparatedMessageWithOneValueWithoutSpaces)
     ASSERT_THAT(ParseMsg("-12345\n\r-1\n\r0\n\r1\n\r12345\n\r"), testing::ElementsAre(-12345, -1, 0, 1, 12345));
 }
 
-TEST_F(IntegerParserTest, TestSeparatedMessageWithOneValueWithSpaces)
+TEST_F(IntegerParserTest, SeparatedMessageWithOneValueWithSpacesTest)
 {
     ASSERT_THAT(ParseMsg("5  "), testing::ElementsAre());
     ASSERT_THAT(ParseMsg("\n  \t\t\t"), testing::ElementsAre());
@@ -113,7 +115,7 @@ TEST_F(IntegerParserTest, TestSeparatedMessageWithOneValueWithSpaces)
     ASSERT_THAT(ParseMsg("-12345\n\r-1\n\r0\n\r1\n\r12345\n\r"), testing::ElementsAre(-12345, -1, 0, 1, 12345));
 }
 
-TEST_F(IntegerParserTest, TestSeparatedMessageWithoutSpaces)
+TEST_F(IntegerParserTest, SeparatedMessageWithoutSpacesTest)
 {
     ASSERT_THAT(ParseMsg("5"), testing::ElementsAre());
     ASSERT_THAT(ParseMsg("\n\r-123"), testing::ElementsAre(5));
@@ -123,7 +125,7 @@ TEST_F(IntegerParserTest, TestSeparatedMessageWithoutSpaces)
     ASSERT_THAT(ParseMsg("-12345\n\r-1\n\r0\n\r1\n\r12345\n\r"), testing::ElementsAre(-12345, -1, 0, 1, 12345));
 }
 
-TEST_F(IntegerParserTest, TestSeparatedMessageWithSpaces)
+TEST_F(IntegerParserTest, SeparatedMessageWithSpacesTest)
 {
     ASSERT_THAT(ParseMsg("5   "), testing::ElementsAre());
     ASSERT_THAT(ParseMsg("\n\r  -123"), testing::ElementsAre(5));
@@ -133,7 +135,7 @@ TEST_F(IntegerParserTest, TestSeparatedMessageWithSpaces)
     ASSERT_THAT(ParseMsg("-12345\n\r-1\n\r0\n\r1\n\r12345\n\r"), testing::ElementsAre(-12345, -1, 0, 1, 12345));
 }
 
-TEST_F(IntegerParserTest, TestInvalidMessageFormat)
+TEST_F(IntegerParserTest, InvalidMessageFormatTest)
 {
     ASSERT_THROW(ParseMsg("5a\n\r"), ParserException);
     Reset();
@@ -147,4 +149,12 @@ TEST_F(IntegerParserTest, TestInvalidMessageFormat)
     Reset();
     ASSERT_THROW(ParseMsg("\n\n\r\r"), ParserException);
     Reset();
+    ASSERT_THROW(ParseMsg("100000000000000000000000000000000000000"), ParserException);
+    Reset();
+    ASSERT_THROW(ParseMsg("100000000000000000000000000000000000000\n\r"), ParserException);
+    Reset();
+    ASSERT_THROW(ParseMsg("                                            "), ParserException);
+    Reset();
+    ASSERT_NO_THROW(ParseMsg(std::string(kBacklogSize - 1, '1')));
+    ASSERT_THROW(ParseMsg("\n\r"),ParserException);
 }

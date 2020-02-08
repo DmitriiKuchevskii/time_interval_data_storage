@@ -7,7 +7,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googlemock/include
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../googletest/build/lib/)
 
 add_executable(time_interval_sum_server_test
-    test.cpp
+        parser_test.cpp
+        calculator_test.cpp
 )
 
 target_link_libraries(time_interval_sum_server_test
