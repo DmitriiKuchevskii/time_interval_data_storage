@@ -72,7 +72,7 @@ private:
 
     InputNumberType ParseNumber(const char* value, size_t size) const
     {
-        while(std::isspace(static_cast<unsigned char>(*value)) && --size) { value++; };
+        while(std::isspace(static_cast<unsigned char>(*value)) && size) { value++; size--; };
 
         InputNumberType result;
         if(auto [next, error] = std::from_chars(value, value + size, result); error == std::errc())

@@ -72,14 +72,31 @@ protected:
 
     void onReceived(const void* buffer, size_t size) override
     {
-        auto anyData = m_parser.Parse(buffer, size);
-        if (anyData)
+        try
         {
-            handle(*anyData);
-            while(auto val = m_parser.Next())
+            auto anyData = m_parser.Parse(buffer, size);
+            if (anyData)
             {
-                handle(*val);
+                handle(*anyData);
+                while(auto val = m_parser.Next())
+                {
+                    handle(*val);
+                }
             }
+        }
+        catch (const std::exception& exc)
+        {
+            std::string errorMsg = std::string() +
+               "An exception occurred.\nMessage: "
+               + exc.what()
+               +  "\nTerminate session with ID " + KSessionId + "\n";
+            std::cerr << errorMsg;
+            Close(std::make_error_code(std::errc::bad_message));
+        }
+        catch (...)
+        {
+            std::cerr << "Unknown error occurred.\nTerminate session with ID " + KSessionId + "\n";
+            Close(std::make_error_code(std::errc::interrupted));
         }
     }
 
@@ -101,13 +118,18 @@ private:
         std::cout << msg;
     }
 
+    void Close(asio::error_code code)
+    {
+        socket().close(code);
+    }
+
 protected:
     ClientAddress m_client;
     const std::string KSessionId = id().string();
     const TimeProvider m_timeProvider = TimeProvider{};
     size_t m_sessionStartTime = -1;
     TimeIntervalSumCalculator<InputNumberType, TimeProvider> m_sumCalculator;
-    NumbersStreamParser<InputNumberType> m_parser{'\r', 32};
+    NumbersStreamParser<InputNumberType> m_parser{'\n', 32};
 };
 
 #endif //TIME_INTERVAL_SUM_SERVER_SESSION_H
