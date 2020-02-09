@@ -3,17 +3,18 @@
 // Created by dkuch on 07.02.2020.
 //
 
-#ifndef TIME_INTERVAL_SUM_SERVER_SESSION_H
-#define TIME_INTERVAL_SUM_SERVER_SESSION_H
+#ifndef TIME_INTERVAL_SUM_SERVER_TIMEINTERVALSUMSESSION_H
+#define TIME_INTERVAL_SUM_SERVER_TIMEINTERVALSUMSESSION_H
 
 
 #include "server/asio/service.h"
 #include "server/asio/tcp_server.h"
 #include "system/cpu.h"
 
-#include "calculator.h"
-#include "parser.h"
-#include "logger.h"
+#include "TimeIntervalSumCalculator.h"
+#include "BacklogNumbersStreamParser.h"
+#include "StdLogger.h"
+#include "StdTimeProvider.h"
 
 using namespace CppCommon;
 using namespace CppServer::Asio;
@@ -65,7 +66,7 @@ public:
         TimeIntervalSumSession(
              server
             , sumTimeIntervalInMilliseconds
-            , std::make_shared<NumbersStreamParser<InputNumberType>>('\n', 32)
+            , std::make_shared<BacklogNumbersStreamParser<InputNumberType>>('\n', 32)
             , std::make_shared<TimeIntervalSumCalculator<InputNumberType>>(sumTimeIntervalInMilliseconds)
             , std::make_shared<StdTimeProvider>()
             , std::make_shared<StdLogger>())
@@ -158,4 +159,4 @@ protected:
     const INumbersStreamParserPtr<InputNumberType> m_parser;
 };
 
-#endif //TIME_INTERVAL_SUM_SERVER_SESSION_H
+#endif //TIME_INTERVAL_SUM_SERVER_TIMEINTERVALSUMSESSION_H

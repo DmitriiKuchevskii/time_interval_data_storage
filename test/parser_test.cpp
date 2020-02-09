@@ -7,7 +7,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-#include "parser.h"
+#include "BacklogNumbersStreamParser.h"
 
 class IntegerParserTest : public testing::Test
 {
@@ -31,14 +31,14 @@ protected:
 
     void Reset()
     {
-        m_parser = std::make_unique<NumbersStreamParser<int64_t>>(kMsgDelimiter, kBacklogSize);
+        m_parser = std::make_unique<BacklogNumbersStreamParser<int64_t>>(kMsgDelimiter, kBacklogSize);
     }
 
 protected:
     static constexpr char kMsgDelimiter = '\n';
     static constexpr size_t kBacklogSize = 32;
-    std::unique_ptr<NumbersStreamParser<int64_t>> m_parser =
-            std::make_unique<NumbersStreamParser<int64_t>>(kMsgDelimiter, kBacklogSize);
+    std::unique_ptr<BacklogNumbersStreamParser<int64_t>> m_parser =
+            std::make_unique<BacklogNumbersStreamParser<int64_t>>(kMsgDelimiter, kBacklogSize);
 };
 
 TEST_F(IntegerParserTest, EmptyMessageTest)

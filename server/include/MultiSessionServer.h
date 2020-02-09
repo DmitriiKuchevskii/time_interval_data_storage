@@ -2,10 +2,10 @@
 //
 // Created by dkuch on 07.02.2020.
 //
-#ifndef TIME_INTERVAL_SUM_SERVER_SERVER_H
-#define TIME_INTERVAL_SUM_SERVER_SERVER_H
+#ifndef TIME_INTERVAL_SUM_SERVER_MULTISESSIONSERVER_H
+#define TIME_INTERVAL_SUM_SERVER_MULTISESSIONSERVER_H
 
-#include "session.h"
+#include "TimeIntervalSumSession.h"
 
 template <typename SessionType, typename... SessionArgs>
 class MultiSessionServer : public TCPServer
@@ -39,4 +39,4 @@ auto make_multi_session_server(const std::shared_ptr<Service>& service, int port
     return std::make_shared<MultiSessionServer<SessionType, SessionArgs...>>(service, port, args...);
 }
 
-#endif //TIME_INTERVAL_SUM_SERVER_SERVER_H
+#endif //TIME_INTERVAL_SUM_SERVER_MULTISESSIONSERVER_H

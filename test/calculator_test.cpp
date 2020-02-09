@@ -7,7 +7,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-#include "calculator.h"
+#include "TimeIntervalSumCalculator.h"
 
 class TimeIntervalCalculatorTest : public testing::Test
 {

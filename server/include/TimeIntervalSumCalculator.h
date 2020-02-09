@@ -12,27 +12,11 @@
 #include <algorithm>
 #include <cstring>
 
-#include "timeprovider.h"
-
-using namespace std::chrono;
-
-template <typename DataType>
-class ITimeIntervalSumCalculator
-{
-public:
-    virtual ~ITimeIntervalSumCalculator() {}
-
-    // Puts new element into time interval calculator
-    virtual void put(const DataType& element) = 0;
-
-    // Returns sum at the moment of the last insertion
-    virtual DataType get() const = 0;
-};
-template <typename T>
-using ITimeIntervalSumCalculatorPtr = std::shared_ptr<ITimeIntervalSumCalculator<T>>;
+#include "ISumCalculator.h"
+#include "StdTimeProvider.h"
 
 template <typename DataType>
-class TimeIntervalSumCalculator : public ITimeIntervalSumCalculator<DataType>
+class TimeIntervalSumCalculator : public ISumCalculator<DataType>
 {
 public:
     explicit TimeIntervalSumCalculator(size_t intervalInMilliseconds, size_t maxUnusedSize = 1024 * 1024 * 5) :
@@ -58,7 +42,9 @@ public:
         if (it == m_data.end())
         {
             m_curSubstruct = 0;
-            m_data = { { timeNow, element } };
+            // It will preserve vector's capacity. So we do not need to reallocate all the time.
+            m_data.clear();
+            m_data.emplace_back(timeNow, element);
             return;
         }
         else if (it != m_data.begin())

@@ -10,14 +10,7 @@
 #include <memory>
 #include <chrono>
 
-class ITimeProvider
-{
-public:
-    virtual ~ITimeProvider() {}
-    // Returns number of milliseconds since epoch
-    virtual size_t now() = 0;
-};
-using ITimeProviderPtr = std::shared_ptr<ITimeProvider>;
+#include "ITimeProvider.h"
 
 class StdTimeProvider : public ITimeProvider
 {

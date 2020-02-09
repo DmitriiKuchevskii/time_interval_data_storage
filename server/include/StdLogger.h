@@ -3,8 +3,8 @@
 // Created by dmitrii on 2/9/20.
 //
 
-#ifndef TIME_INTERVAL_SUM_SERVER_LOGGER_H
-#define TIME_INTERVAL_SUM_SERVER_LOGGER_H
+#ifndef TIME_INTERVAL_SUM_SERVER_STDLOGGER_H
+#define TIME_INTERVAL_SUM_SERVER_STDLOGGER_H
 
 #include <iostream>
 #include <memory>
@@ -12,24 +12,7 @@
 #include <sstream>
 #include <unistd.h>
 
-class ILogger
-{
-public:
-    virtual ~ILogger() {}
-
-    // Prints message "as is"
-    virtual void raw(const std::string& msg) = 0;
-
-    // Prints message as information
-    virtual void info(const std::string& msg) = 0;
-
-    // Prints message as warning
-    virtual void warn(const std::string& msg) = 0;
-
-    // Prints message as error
-    virtual void error(const std::string& msg) = 0;
-};
-using ILoggerPtr = std::shared_ptr<ILogger>;
+#include "ILogger.h"
 
 class StdLogger : public ILogger
 {
@@ -75,15 +58,15 @@ public:
 private:
     void print(std::ostream& out, const char* category, const char* color, const std::string& msg)
     {
-        std::stringstream errMsg;
-        errMsg << color << "[" << category << "][PID: "
+        std::stringstream fullMsg;
+        fullMsg << color << "[" << category << "][PID: "
                << getpid() << "][THREAD ID: "
                << std::this_thread::get_id() << "]:  "
                << msg
                << Color::reset();
-        std::cerr << errMsg.str();
+        out << fullMsg.str();
     }
 
 };
 
-#endif //TIME_INTERVAL_SUM_SERVER_LOGGER_H
+#endif //TIME_INTERVAL_SUM_SERVER_STDLOGGER_H

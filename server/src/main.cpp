@@ -1,7 +1,7 @@
 #include "server/asio/service.h"
 #include "system/cpu.h"
-#include "server.h"
-#include "session.h"
+#include "MultiSessionServer.h"
+#include "TimeIntervalSumSession.h"
 
 int main(int argc, char** argv)
 {
