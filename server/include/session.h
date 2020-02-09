@@ -17,6 +17,12 @@
 using namespace CppCommon;
 using namespace CppServer::Asio;
 
+class TimeIntervalSumSessionException : public std::runtime_error
+{
+public:
+    using runtime_error::runtime_error;
+};
+
 // It is not really fast, but com'n it's MUCH faster then std::to_string
 std::string fast_to_string(int64_t val)
 {
@@ -54,9 +60,12 @@ template <typename InputNumberType, typename TimeProvider = StdTimeProvider>
 class TimeIntervalSumSession : public TCPSession
 {
 public:
-    TimeIntervalSumSession(const std::shared_ptr<TCPServer>& server, size_t sumTimeIntervalInMilliseconds) :
+    TimeIntervalSumSession(
+          const std::shared_ptr<TCPServer>& server
+        , size_t sumTimeIntervalInMilliseconds
+        ) :
             TCPSession(server)
-            , m_sumCalculator(sumTimeIntervalInMilliseconds)
+           , m_sumCalculator(sumTimeIntervalInMilliseconds)
     {}
 
 protected:
@@ -74,22 +83,20 @@ protected:
     {
         try
         {
-            auto anyData = m_parser.Parse(buffer, size);
-            if (anyData)
+            if (auto prevOrNewData = m_parser.Parse(buffer, size); prevOrNewData)
             {
-                handle(*anyData);
+                ProcessRequest(*prevOrNewData);
                 while(auto val = m_parser.Next())
                 {
-                    handle(*val);
+                    ProcessRequest(*val);
                 }
             }
         }
         catch (const std::exception& exc)
         {
-            std::string errorMsg = std::string() +
-               "An exception occurred.\nMessage: "
-               + exc.what()
-               +  "\nTerminate session with ID " + KSessionId + "\n";
+            std::string errorMsg = "An exception occurred.\n"
+              "Message: " + std::string(exc.what())     +"\n"
+              "Terminate session with ID " + KSessionId +"\n";
             std::cerr << errorMsg;
             Close(std::make_error_code(std::errc::bad_message));
         }
@@ -101,14 +108,15 @@ protected:
     }
 
 private:
-    void handle(int64_t value)
+    void ProcessRequest(int64_t value)
     {
         m_sumCalculator.put(value);
         auto curSumStr = fast_to_string(m_sumCalculator.get()) + "\n";
 
         if (!SendAsync(curSumStr.data(), curSumStr.size()))
         {
-            throw std::runtime_error("Can not send data. Unknown reason. Terminate server.");
+            throw TimeIntervalSumSessionException("Unexpected error occurred. "
+                                                  "Can not send message to client. Socket is closed.");
         }
 
         auto secondsSinceStart = fast_to_string((m_timeProvider.Now() - m_sessionStartTime) / 1000);

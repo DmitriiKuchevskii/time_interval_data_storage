@@ -35,7 +35,7 @@ public:
 protected:
     static constexpr size_t kCalculatorTimeIntervalInMilliseconds = 60 * 1000;
     TimeIntervalSumCalculator<int64_t, TimeIntervalCalculatorTest> m_calculator{
-            kCalculatorTimeIntervalInMilliseconds, 1024 * 1024 * 5, *this
+            kCalculatorTimeIntervalInMilliseconds, 1024, *this
     };
 
 private:
@@ -110,6 +110,28 @@ TEST_F(TimeIntervalCalculatorTest, SumWithNegativeNumbersTest)
     ASSERT_EQ(m_calculator.get(), 100);
 
     for (size_t i = 0; i < 100; ++i)
+    {
+        m_calculator.put(-1);
+    }
+    ASSERT_EQ(m_calculator.get(), 0);
+}
+
+TEST_F(TimeIntervalCalculatorTest, SumWithRealloctionTest)
+{
+    for (size_t i = 0; i < 10000; ++i)
+    {
+        m_calculator.put(1);
+    }
+    WaitFor(2 * kCalculatorTimeIntervalInMilliseconds / 3);
+    for (size_t i = 0; i < 1000; ++i)
+    {
+        m_calculator.put(1);
+    }
+    WaitFor(kCalculatorTimeIntervalInMilliseconds / 3);
+    m_calculator.put(0);
+    ASSERT_EQ(m_calculator.get(), 1000);
+
+    for (size_t i = 0; i < 1000; ++i)
     {
         m_calculator.put(-1);
     }

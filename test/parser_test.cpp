@@ -146,7 +146,6 @@ TEST_F(IntegerParserTest, InvalidMessageFormatTest)
     ASSERT_THROW(ParseMsg("5\r\n 1 1\r\n"), ParserException);
     Reset();
     ASSERT_THROW(ParseMsg("\r\n"), ParserException);
-
     Reset();
     ASSERT_THROW(ParseMsg("\r\r\n\n"), ParserException);
     Reset();

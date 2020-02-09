@@ -17,5 +17,3 @@ target_link_libraries(time_interval_sum_server_test
     gmock_main
     gmock
 )
-
-add_dependencies(time_interval_sum_server_test time_interval_sum_server)
