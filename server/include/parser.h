@@ -14,7 +14,32 @@ public:
 };
 
 template <typename InputNumberType>
-class NumbersStreamParser
+class INumbersStreamParser
+{
+public:
+    virtual ~INumbersStreamParser() {}
+
+    // Parses input data stream. If any data exists returns the first element, otherwise std::noopt returns.
+    //
+    // ParserException is thrown if data format is incorrect.
+    virtual std::optional<InputNumberType> parse(const void* dataStream, size_t size) = 0;
+
+    // Returns next element in the stream. If no elements available std::noopt returns.
+    //
+    // NOTE: 1. Once this function returned std::noopt you can only call it again after parse method called,
+    //          otherwise it will lead to undefined behavior.
+    //       2. If parse method returned std::noopt calling this function causes undefined behavior.
+    //
+    // ParserException is thrown if data format is incorrect
+    virtual std::optional<InputNumberType> next() = 0;
+};
+template <typename DataType>
+using INumbersStreamParserPtr = std::shared_ptr<INumbersStreamParser<DataType>>;
+
+
+
+template <typename InputNumberType>
+class NumbersStreamParser : public INumbersStreamParser<InputNumberType>
 {
 public:
     NumbersStreamParser(char msgDelimiter, size_t backlogSize) :
@@ -23,7 +48,7 @@ public:
     {}
 
 public:
-    std::optional<InputNumberType> Parse(const void* data, size_t size)
+    std::optional<InputNumberType> parse(const void* data, size_t size) override
     {
         m_parseBuffer = { (const char*)data, size };
         m_parseBuffPos = 0;
@@ -31,27 +56,27 @@ public:
         auto delimiterPos = m_parseBuffer.find(kDelimiter);
         if (delimiterPos == std::string::npos)
         {
-            AddToBacklog(m_parseBuffer.data(), m_parseBuffer.size());
+            addToBacklog(m_parseBuffer.data(), m_parseBuffer.size());
             return {};
         }
 
-        return m_backlogPos ? GetBacklogValue(delimiterPos) : GetNextValue(delimiterPos);
+        return m_backlogPos ? getBacklogValue(delimiterPos) : getNextValue(delimiterPos);
     }
 
-    std::optional<InputNumberType> Next()
+    std::optional<InputNumberType> next() override
     {
         auto endPos = m_parseBuffer.find(kDelimiter, m_parseBuffPos);
         if (endPos == std::string::npos)
         {
-            AddToBacklog(m_parseBuffer.data() + m_parseBuffPos, m_parseBuffer.size() - m_parseBuffPos);
+            addToBacklog(m_parseBuffer.data() + m_parseBuffPos, m_parseBuffer.size() - m_parseBuffPos);
             return {};
         }
 
-        return GetNextValue(endPos - m_parseBuffPos);
+        return getNextValue(endPos - m_parseBuffPos);
     }
 
 private:
-    void AddToBacklog(const char* data, size_t size)
+    void addToBacklog(const char* data, size_t size)
     {
         if (m_backlogPos + size >= m_backlogData.size())
         {
@@ -61,16 +86,16 @@ private:
         m_backlogPos += size;
     }
 
-    InputNumberType GetBacklogValue(size_t size)
+    InputNumberType getBacklogValue(size_t size)
     {
-        AddToBacklog(m_parseBuffer.data(), size);
-        auto backlogValue = ParseNumber(m_backlogData.data(), m_backlogPos);
+        addToBacklog(m_parseBuffer.data(), size);
+        auto backlogValue = parseNumber(m_backlogData.data(), m_backlogPos);
         m_parseBuffPos = size + 1;
         m_backlogPos = 0;
         return backlogValue;
     }
 
-    InputNumberType ParseNumber(const char* value, size_t size) const
+    InputNumberType parseNumber(const char* value, size_t size) const
     {
         while(std::isspace(static_cast<unsigned char>(*value)) && size) { value++; size--; };
 
@@ -88,9 +113,9 @@ private:
         throw ParserException("Invalid message format: '" + std::string(value, size) + "'");
     }
 
-    InputNumberType GetNextValue(size_t size)
+    InputNumberType getNextValue(size_t size)
     {
-        auto parsedValue = ParseNumber(m_parseBuffer.data() + m_parseBuffPos, size);
+        auto parsedValue = parseNumber(m_parseBuffer.data() + m_parseBuffPos, size);
         m_parseBuffPos += size + 1;
         return parsedValue;
     }

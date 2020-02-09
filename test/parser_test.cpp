@@ -16,11 +16,11 @@ protected:
     {
         std::vector<int64_t> parsedValues;
 
-        auto anyData = m_parser->Parse(msg.data(), msg.size());
+        auto anyData = m_parser->parse(msg.data(), msg.size());
         if (anyData)
         {
             parsedValues.push_back(*anyData);
-            while(auto val = m_parser->Next())
+            while(auto val = m_parser->next())
             {
                 parsedValues.push_back(*val);
             }
