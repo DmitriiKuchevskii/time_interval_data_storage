@@ -68,20 +68,51 @@ private:
 
     InputNumberType parseNumber(const char* value, size_t size) const
     {
-        while(std::isspace(static_cast<unsigned char>(*value)) && size) { value++; size--; };
-
         InputNumberType result;
-        if(auto [next, error] = std::from_chars(value, value + size, result); error == std::errc())
+
+        if constexpr (std::numeric_limits<InputNumberType>::is_integer)
         {
-            while(next != value + size)
+            while (std::isspace(static_cast<unsigned char>(*value)) && size)
             {
-                if (!std::isspace(static_cast<unsigned char>(*next++)))
+                value++;
+                size--;
+            };
+
+            if (auto[next, error] = std::from_chars(value, value + size, result); error == std::errc())
+            {
+                while (next != value + size)
+                {
+                    if (!std::isspace(static_cast<unsigned char>(*next++)))
+                        throw ParserException("Invalid message format: '" + std::string(value, size) + "'");
+                }
+                return result;
+            }
+            throw ParserException("Invalid message format: '" + std::string(value, size) + "'");
+        }
+        else // GCC doe not implement from_chars for not-integer types yet
+        {
+            char* end;
+            result = std::strtod(value, &end);
+
+            if (errno == ERANGE)
+            {
+                errno = 0;
+                throw ParserException("Invalid message format: '" + std::string(value, size) + "'");
+            }
+
+            if (value == end && result == 0.0)
+            {
+                throw ParserException("Invalid message format: '" + std::string(value, size) + "'");
+            }
+
+            while (end != value + size)
+            {
+                if (!std::isspace(static_cast<unsigned char>(*end++)))
                     throw ParserException("Invalid message format: '" + std::string(value, size) + "'");
             }
+
             return result;
         }
-
-        throw ParserException("Invalid message format: '" + std::string(value, size) + "'");
     }
 
     InputNumberType getNextValue(size_t size)

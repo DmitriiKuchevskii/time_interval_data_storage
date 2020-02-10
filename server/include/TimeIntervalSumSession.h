@@ -26,30 +26,41 @@ public:
 };
 
 // It is not really fast, but com'n it's MUCH faster then std::to_string
-inline std::string fast_to_string(int64_t val)
+template <typename NumberType>
+inline std::string fast_to_string(const NumberType& number)
 {
-    constexpr size_t kMaxNumberSize = 35;
-    char result[kMaxNumberSize];
-
-    size_t index = 0;
-    bool neg = false;
-    if (val < 0)
+    if constexpr (std::numeric_limits<NumberType>::is_integer)
     {
-        neg = true;
-        val = -val;
+        NumberType val{number};
+
+        constexpr size_t kMaxNumberSize = 35;
+        char result[kMaxNumberSize];
+
+        size_t index = 0;
+        bool neg = false;
+        if (val < 0)
+        {
+            neg = true;
+            val = -val;
+        }
+
+        do
+        {
+            result[kMaxNumberSize - 1 - index++] = (val % 10) + 48;
+            val /= 10;
+        }
+        while(val);
+
+        if (neg)
+            result[kMaxNumberSize - 1 - index] = '-';
+
+        return {result + kMaxNumberSize - neg - index, index + neg };
+    }
+    else
+    {
+        return std::to_string(number);
     }
 
-    do
-    {
-        result[kMaxNumberSize - 1 - index++] = (val % 10) + 48;
-        val /= 10;
-    }
-    while(val);
-
-    if (neg)
-        result[kMaxNumberSize - 1 - index] = '-';
-
-    return {result + kMaxNumberSize - neg - index, index + neg };
 }
 
 struct ClientAddress
@@ -116,17 +127,17 @@ protected:
               "Message: " + std::string(exc.what())     +"\n"
               "Terminate session with ID " + m_sessionId +"\n";
             m_logger->error(errorMsg);
-            Close(std::make_error_code(std::errc::bad_message));
+            Disconnect();
         }
         catch (...)
         {
             m_logger->error("Unknown error occurred.\nTerminate session with ID " + m_sessionId + "\n");
-            Close(std::make_error_code(std::errc::interrupted));
+            Disconnect();
         }
     }
 
 private:
-    void ProcessRequest(int64_t value)
+    void ProcessRequest(InputNumberType value)
     {
         m_sumCalculator->put(value);
         auto curSumStr = fast_to_string(m_sumCalculator->get()) + "\n";
@@ -142,11 +153,6 @@ private:
                    m_client.ip + ":" + m_client.port + "(session ID: " + m_sessionId + "). "
                    + "The current sum is " + curSumStr;
         m_logger->info(msg);
-    }
-
-    void Close(asio::error_code code)
-    {
-        socket().close(code);
     }
 
 protected:
