@@ -25,7 +25,7 @@ protected:
     std::shared_ptr<TCPSession> CreateSession(const std::shared_ptr<TCPServer>& server) override
     {
         return std::apply(std::make_shared<SessionType, const std::shared_ptr<TCPServer>&, SessionArgs...>,
-                          std::tuple_cat(std::make_tuple(server), std::move(m_sessionArgs))
+                          std::tuple_cat(std::make_tuple(server), m_sessionArgs)
                           );
     }
 
