@@ -19,6 +19,8 @@ link_directories(CppServer/temp/modules/CppCommon/modules)
 find_package(Threads REQUIRED)
 link_libraries(Threads::Threads)
 
+add_compile_options(-Wall -pedantic -Werror)
+
 add_subdirectory(test)
 add_subdirectory(server)
 

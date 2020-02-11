@@ -64,10 +64,10 @@ private:
                << getpid() << "][THREAD ID: "
                << std::this_thread::get_id() << "]:  ";
 
-        for (unsigned char c : msg)
+        for (char c : msg)
         {
             if (c >= 32 || c == '\n' || c == '\t')
-                fullMsg << char(c);
+                fullMsg << c;
             else if (c == '\r')
                 fullMsg << "\\r";
             else if (c == '\f')
@@ -77,7 +77,7 @@ private:
             else if (c == 0)
                 fullMsg << "\\0";
             else
-                fullMsg << "[\\" << (int) c << "]";
+                fullMsg << "[\\" << (int)c << "]";
         }
 
         fullMsg << Color::reset();

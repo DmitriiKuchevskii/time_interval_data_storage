@@ -19,16 +19,16 @@ template <typename DataType>
 class TimeIntervalSumCalculator : public ISumCalculator<DataType>
 {
 public:
-    explicit TimeIntervalSumCalculator(size_t intervalInMilliseconds, size_t maxUnusedSize = 1024 * 1024 * 5) :
+    explicit TimeIntervalSumCalculator(size_t intervalInMilliseconds, int64_t maxUnusedSize = 1024 * 1024 * 5) :
         TimeIntervalSumCalculator(
             intervalInMilliseconds
           , maxUnusedSize
           , std::make_shared<StdTimeProvider>())
     {}
 
-    TimeIntervalSumCalculator(size_t intervalInMilliseconds, size_t maxUnusedSize, ITimeProviderPtr timeProvider) :
+    TimeIntervalSumCalculator(size_t intervalInMilliseconds, int64_t maxUnusedSize, ITimeProviderPtr timeProvider) :
           m_interval(intervalInMilliseconds)
-        , m_maxUnusedSize(maxUnusedSize)
+        , m_maxUnusedSize(std::max(maxUnusedSize, 1l))
         , m_timeProvider(std::move(timeProvider))
     {}
 
@@ -71,7 +71,7 @@ private:
     std::vector<std::pair<size_t, DataType>> m_data;
     const size_t m_interval;
     DataType m_curSubstruct =  0;
-    const size_t m_maxUnusedSize;
+    const int64_t m_maxUnusedSize;
     const ITimeProviderPtr m_timeProvider;
 };
 

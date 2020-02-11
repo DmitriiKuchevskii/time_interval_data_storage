@@ -21,14 +21,14 @@ class INumbersStreamParser
 public:
     virtual ~INumbersStreamParser() {}
 
-    // Parses input data stream. If any data exists returns the first element, otherwise std::noopt returns.
+    // Parses input data stream. If any data exists returns the first element, otherwise std::nullopt returns.
     //
     // ParserException is thrown if data format is incorrect.
     virtual std::optional<InputNumberType> parse(const void* dataStream, size_t size) = 0;
 
-    // Returns next element in the stream. If no elements available std::noopt returns.
+    // Returns next element in the stream. If no elements available std::nullopt returns.
     //
-    // NOTE: 1. Once this function returned std::noopt you can only call it again after parse method called,
+    // NOTE: 1. Once this function returned std::nullopt you can only call it again after parse method called,
     //          otherwise it will lead to undefined behavior.
     //       2. If parse method returned std::noopt calling this function causes undefined behavior.
     //

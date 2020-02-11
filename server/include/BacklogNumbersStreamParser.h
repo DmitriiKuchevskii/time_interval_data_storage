@@ -28,7 +28,7 @@ public:
         if (delimiterPos == std::string::npos)
         {
             addToBacklog(m_parseBuffer.data(), m_parseBuffer.size());
-            return {};
+            return std::nullopt;
         }
 
         return m_backlogPos ? getBacklogValue(delimiterPos) : getNextValue(delimiterPos);
@@ -40,7 +40,7 @@ public:
         if (endPos == std::string::npos)
         {
             addToBacklog(m_parseBuffer.data() + m_parseBuffPos, m_parseBuffer.size() - m_parseBuffPos);
-            return {};
+            return std::nullopt;
         }
 
         return getNextValue(endPos - m_parseBuffPos);
