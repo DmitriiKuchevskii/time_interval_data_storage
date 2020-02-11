@@ -5,12 +5,8 @@
 !.gitignore
 !CMakeLists.txt
 !test
+!test/*
 !server
 !server/*
-!*.cpp
-!*.cc
-!*.h
-!*.hpp
-!*.cxx
 !README.txt
 !setup.sh

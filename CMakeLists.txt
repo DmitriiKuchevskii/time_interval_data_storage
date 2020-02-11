@@ -21,6 +21,12 @@ link_libraries(Threads::Threads)
 
 add_compile_options(-Wall -pedantic -Werror)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(-O0 -g3)
+else()
+    add_compile_options(-Ofast -mavx -march=native -flto -g0 -DNDEBUG)
+endif()
+
 add_subdirectory(test)
 add_subdirectory(server)
 
