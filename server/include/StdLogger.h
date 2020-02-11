@@ -59,11 +59,29 @@ private:
     void print(std::ostream& out, const char* category, const char* color, const std::string& msg)
     {
         std::stringstream fullMsg;
+
         fullMsg << color << "[" << category << "][PID: "
                << getpid() << "][THREAD ID: "
-               << std::this_thread::get_id() << "]:  "
-               << msg
-               << Color::reset();
+               << std::this_thread::get_id() << "]:  ";
+
+        for (unsigned char c : msg)
+        {
+            if (c >= 32 || c == '\n' || c == '\t')
+                fullMsg << char(c);
+            else if (c == '\r')
+                fullMsg << "\\r";
+            else if (c == '\f')
+                fullMsg << "\\f";
+            else if (c == '\v')
+                fullMsg << "\\v";
+            else if (c == 0)
+                fullMsg << "\\0";
+            else
+                fullMsg << "[\\" << (int) c << "]";
+        }
+
+        fullMsg << Color::reset();
+
         out << fullMsg.str();
     }
 
